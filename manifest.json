@@ -1,0 +1,32 @@
+{
+    "name": "Registro Horario Laboral",
+    "short_name": "RegistroHorario",
+    "description": "Aplicación para registro de horario laboral con firma digital",
+    "start_url": "./index.html",
+    "display": "standalone",
+    "background_color": "#667eea",
+    "theme_color": "#2563eb",
+    "orientation": "portrait",
+    "icons": [
+        {
+            "src": "logo-redes_Transparente-216x216.png",
+            "sizes": "216x216",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ],
+    "lang": "es",
+    "scope": "./",
+    "categories": ["business", "productivity"],
+    "screenshots": [],
+    "related_applications": [],
+    "prefer_related_applications": false,
+    "permissions": [
+        "notifications",
+        "background-sync"
+    ],
+    "features": [
+        "notifications",
+        "background-fetch"
+    ]
+}

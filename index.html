@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro Horario Laboral - Online</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Estilos adicionales para el panel de administrador */
+        .admin-access-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            border: none;
+            padding: 15px 20px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .admin-access-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.6);
+        }
+        
+        .admin-panel {
+            display: none;
+            padding: 20px;
+        }
+        
+        .admin-header {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+        }
+        
+        .admin-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-left: 4px solid #6366f1;
+        }
+        
+        .stat-card h3 {
+            color: #64748b;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+        
+        .stat-card .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1e293b;
+        }
+        
+        .admin-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .admin-tab {
+            padding: 12px 24px;
+            border: none;
+            background: #f1f5f9;
+            color: #64748b;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .admin-tab.active {
+            background: #6366f1;
+            color: white;
+        }
+        
+        .admin-tab-content {
+            display: none;
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .admin-tab-content.active {
+            display: block;
+        }
+        
+        .user-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        .user-table th,
+        .user-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .user-table th {
+            background: #f8fafc;
+            font-weight: 600;
+            color: #475569;
+        }
+        
+        .user-table tr:hover {
+            background: #f8fafc;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        
+        .status-active {
+            background: #dcfce7;
+            color: #166534;
+        }
+        
+        .status-inactive {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .calendar-day {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .calendar-day:hover {
+            border-color: #6366f1;
+            background: #f0f9ff;
+        }
+        
+        .calendar-day.holiday {
+            background: #fee2e2;
+            border-color: #ef4444;
+        }
+        
+        .calendar-day.weekend {
+            background: #f1f5f9;
+        }
+        
+        .btn-icon {
+            background: none;
+            border: none;
+            padding: 8px;
+            cursor: pointer;
+            color: #64748b;
+            transition: color 0.2s;
+        }
+        
+        .btn-icon:hover {
+            color: #6366f1;
+        }
+        
+        .btn-icon.delete:hover {
+            color: #ef4444;
+        }
+        
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+        
+        .month-selector {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8fafc;
+            border-radius: 8px;
+        }
+        
+        .month-selector h3 {
+            margin: 0;
+            color: #1e293b;
+        }
+        
+        .month-nav {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .month-nav button {
+            padding: 8px 16px;
+            border: none;
+            background: #6366f1;
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .month-nav button:hover {
+            background: #4f46e5;
+        }
+        
+        .export-section {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8fafc;
+            border-radius: 8px;
+        }
+        
+        .date-range-picker {
+            display: flex;
+            gap: 15px;
+            align-items: end;
+            flex-wrap: wrap;
+        }
+        
+        .date-range-picker .form-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        /* Loading indicator */
+        .loading-indicator {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255,255,255,0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            flex-direction: column;
+        }
+        
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid #f3f4f6;
+            border-top: 3px solid #6366f1;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .loading-text {
+            margin-top: 15px;
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        /* Firebase config warning */
+        .config-warning {
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            color: #92400e;
+            padding: 20px;
+            margin: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .config-warning h3 {
+            margin: 0 0 10px 0;
+            color: #92400e;
+        }
+
+        .config-warning p {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <!-- Firebase config warning (se ocultará cuando esté configurado) -->
+    <div class="config-warning" id="configWarning" style="display: block;">
+        <h3><i class="fas fa-exclamation-triangle"></i> Configuración Requerida</h3>
+        <p><strong>¡Atención!</strong> Esta aplicación necesita configuración de Firebase para funcionar online.</p>
+        <p>Por favor, configura tu Firebase siguiendo las instrucciones del archivo <strong>CONFIGURACION_FIREBASE.md</strong></p>
+        <p><small>Una vez configurado, esta alerta desaparecerá automáticamente</small></p>
+    </div>
+
+    <!-- Loading indicator -->
+    <div class="loading-indicator" id="loadingIndicator" style="display: none;">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Cargando aplicación...</div>
+    </div>
+
+    <!-- Botón de acceso a administración -->
+    <button class="admin-access-btn" id="adminAccessBtn" style="display: none;">
+        <i class="fas fa-user-shield"></i>
+        Admin
+    </button>
+    
+    <header class="header">
+        <img src="logo-redes_Transparente-216x216.png" alt="Logo" class="logo">
+        <h1>Registro Horario Laboral - Online</h1>
+        <div class="schedule-info">
+            <div class="schedule-item">
+                <i class="fas fa-building"></i>
+                <span><strong>PLANTA EXTERNA:</strong> 08:00 - 14:00 / 15:00 - 17:00</span>
+            </div>
+            <div class="schedule-item">
+                <i class="fas fa-desktop"></i>
+                <span><strong>OFICINA:</strong> 08:00 - 16:00</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Restricción de tiempo -->
+    <div class="time-restriction" id="timeRestriction">
+        <div class="restriction-content">
+            <i class="fas fa-clock"></i>
+            <h2>Acceso Restringido</h2>
+            <p>La aplicación solo está disponible después de las 18:00 horas.</p>
+            <div class="current-time" id="currentTime"></div>
+        </div>
+    </div>
+
+    <!-- Menú principal -->
+    <nav class="main-menu" id="mainMenu" style="display: none;">
+        <div class="menu-header">
+            <h2><i class="fas fa-tachometer-alt"></i> Panel de Control</h2>
+            <div class="current-time" id="menuCurrentTime"></div>
+        </div>
+        <div class="menu-grid">
+            <button class="menu-item" id="newSignatureBtn">
+                <i class="fas fa-signature"></i>
+                <span>Firmar Hoy</span>
+                <small>Registrar jornada actual</small>
+            </button>
+            <button class="menu-item" id="pendingSignaturesBtn">
+                <i class="fas fa-calendar-check"></i>
+                <span>Firmas Pendientes</span>
+                <small>Ver días sin firmar</small>
+            </button>
+            <button class="menu-item" id="completedSignaturesBtn">
+                <i class="fas fa-folder-open"></i>
+                <span>Firmas Completadas</span>
+                <small>Ver historial</small>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Autenticación para menú -->
+    <div class="auth-screen" id="authScreen" style="display: none;">
+        <div class="auth-content">
+            <h2><i class="fas fa-shield-alt"></i> Autenticación Requerida</h2>
+            <p>Ingresa tus credenciales para acceder al panel de gestión</p>
+            <form class="form" id="authForm">
+                <div class="form-group">
+                    <label for="authTrabajador">
+                        <i class="fas fa-user"></i>
+                        Trabajador
+                    </label>
+                    <select id="authTrabajador" name="authTrabajador" required>
+                        <option value="">- Selecciona tu nombre -</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="authPassword">
+                        <i class="fas fa-lock"></i>
+                        Contraseña
+                    </label>
+                    <input type="password" id="authPassword" name="authPassword" placeholder="Ingresa tu contraseña" required>
+                </div>
+                <div class="auth-buttons">
+                    <button type="submit" class="btn-primary">
+                        <i class="fas fa-sign-in-alt"></i>
+                        Acceder al Panel
+                    </button>
+                    <button type="button" class="btn-secondary" id="backToSignBtn">
+                        <i class="fas fa-arrow-left"></i>
+                        Volver a Firmar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Pantalla de firma diaria -->
+    <main class="main-content" id="mainContent" style="display: none;">
+        <div class="content-header">
+            <h2><i class="fas fa-signature"></i> Firma del Día</h2>
+            <button class="btn-secondary" id="menuAccessBtn">
+                <i class="fas fa-cog"></i>
+                Panel de Gestión
+            </button>
+        </div>
+        
+        <!-- Mensajes de estado para formulario principal -->
+        <div class="status-message" id="mainStatusMessage"></div>
+        
+        <form class="form" id="registroForm">
+            <div class="form-group">
+                <label for="trabajador">
+                    <i class="fas fa-user"></i>
+                    Nombre y Apellidos del Trabajador
+                </label>
+                <select id="trabajador" name="trabajador" required>
+                    <option value="">- Selecciona tu nombre -</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="dni">
+                    <i class="fas fa-id-card"></i>
+                    DNI Trabajador
+                </label>
+                <input type="text" id="dni" name="dni" readonly>
+            </div>
+
+            <div class="form-group">
+                <label for="horario">
+                    <i class="fas fa-clock"></i>
+                    Horario Laboral
+                </label>
+                <select id="horario" name="horario" required readonly>
+                    <option value="">- Se asignará automáticamente -</option>
+                    <option value="PLANTA EXTERNA: 08:00 - 14:00 / 15:00 - 17:00">PLANTA EXTERNA: 08:00 - 14:00 / 15:00 - 17:00</option>
+                    <option value="OFICINA: 08:00 - 16:00">OFICINA: 08:00 - 16:00</option>
+                </select>
+                <small style="color: #64748b; font-size: 0.85rem; margin-top: 5px; display: block;">
+                    <i class="fas fa-info-circle"></i>
+                    Tu horario se asigna automáticamente según tu puesto
+                </small>
+            </div>
+
+            <div class="form-group">
+                <label for="password">
+                    <i class="fas fa-lock"></i>
+                    Contraseña
+                </label>
+                <div class="password-input">
+                    <input type="password" id="password" name="password" placeholder="Ingresa tu contraseña personal" required>
+                    <button type="button" class="show-password" id="showPassword">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
+                <small style="color: #64748b; font-size: 0.85rem; margin-top: 5px; display: block;">
+                    <i class="fas fa-info-circle"></i>
+                    Si no recuerdas tu contraseña, contacta con el administrador
+                </small>
+            </div>
+
+            <div class="signature-section">
+                <label>
+                    <i class="fas fa-signature"></i>
+                    Firma Digital
+                </label>
+                <div class="signature-container">
+                    <canvas id="signatureCanvas" width="400" height="150"></canvas>
+                    <button type="button" class="btn-secondary" id="clearSignature">
+                        <i class="fas fa-eraser"></i>
+                        Limpiar Firma
+                    </button>
+                </div>
+                <small style="color: #64748b; font-size: 0.85rem; margin-top: 5px; display: block;">
+                    <i class="fas fa-info-circle"></i>
+                    Firma usando el ratón o tu dedo en dispositivos táctiles
+                </small>
+            </div>
+
+            <div class="declaration">
+                <h3><i class="fas fa-balance-scale"></i> Declaración Legal</h3>
+                <p>"Declaro que, en virtud de la Ley 8/1980, de 10 de marzo, del Estatuto de los Trabajadores, así como de la normativa vigente sobre registro de jornada laboral, procedo a firmar y confirmar que las horas trabajadas han sido registradas correctamente en el presente formulario. Firmo para constancia de que las horas consignadas en este registro corresponden a las realizadas durante mi jornada laboral. Acepto que la información proporcionada sea almacenada conforme a la legislación laboral vigente."</p>
+            </div>
+
+            <button type="submit" class="btn-primary" id="submitBtn">
+                <i class="fas fa-signature"></i>
+                Firmar y Registrar
+            </button>
+        </form>
+    </main>
+
+    <!-- Pantalla de firmas pendientes -->
+    <div class="pending-signatures-screen" id="pendingSignaturesScreen" style="display: none;">
+        <div class="content-header">
+            <h2><i class="fas fa-calendar-check"></i> Firmas Pendientes</h2>
+            <button class="btn-secondary" id="backToMenuBtn1">
+                <i class="fas fa-arrow-left"></i>
+                Volver al Menú
+            </button>
+        </div>
+        <div class="pending-content">
+            <div class="user-info" id="pendingUserInfo"></div>
+            <div class="pending-list" id="pendingList"></div>
+        </div>
+    </div>
+
+    <!-- Pantalla de firmas completadas -->
+    <div class="completed-signatures-screen" id="completedSignaturesScreen" style="display: none;">
+        <div class="content-header">
+            <h2><i class="fas fa-folder-open"></i> Firmas Completadas</h2>
+            <button class="btn-secondary" id="backToMenuBtn2">
+                <i class="fas fa-arrow-left"></i>
+                Volver al Menú
+            </button>
+        </div>
+        <div class="completed-content">
+            <div class="user-info" id="completedUserInfo"></div>
+            <div class="completed-list" id="completedList"></div>
+        </div>
+    </div>
+
+    <!-- Modal para firma de día específico -->
+    <div class="modal" id="signSpecificDayModal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-calendar-day"></i> Firmar Día Específico</h3>
+                <button class="close-modal" id="closeModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="day-info" id="modalDayInfo"></div>
+                <div class="signature-section">
+                    <label>
+                        <i class="fas fa-signature"></i>
+                        Firma Digital
+                    </label>
+                    <div class="signature-container">
+                        <canvas id="modalSignatureCanvas" width="400" height="150"></canvas>
+                        <button type="button" class="btn-secondary" id="clearModalSignature">
+                            <i class="fas fa-eraser"></i>
+                            Limpiar Firma
+                        </button>
+                    </div>
+                </div>
+                <div class="modal-buttons">
+                    <button class="btn-primary" id="confirmSignature">
+                        <i class="fas fa-check"></i>
+                        Confirmar Firma
+                    </button>
+                    <button class="btn-secondary" id="cancelSignature">
+                        <i class="fas fa-times"></i>
+                        Cancelar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PANEL DE ADMINISTRADOR -->
+    <div class="admin-panel" id="adminPanel">
+        <div class="admin-header">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h1 style="margin: 0; font-size: 2rem;">
+                        <i class="fas fa-user-shield"></i>
+                        Panel de Administrador
+                    </h1>
+                    <p style="margin: 10px 0 0 0; opacity: 0.9;">Gestión del Sistema de Registro Horario - ONLINE</p>
+                </div>
+                <button class="btn-secondary" id="exitAdminBtn" style="background: rgba(255,255,255,0.2); color: white; border: 2px solid white;">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Salir
+                </button>
+            </div>
+        </div>
+
+        <!-- Dashboard - Estadísticas -->
+        <div class="admin-stats">
+            <div class="stat-card">
+                <h3><i class="fas fa-users"></i> Total Trabajadores</h3>
+                <div class="stat-value" id="totalWorkers">0</div>
+            </div>
+            <div class="stat-card">
+                <h3><i class="fas fa-check-circle"></i> Firmas Hoy</h3>
+                <div class="stat-value" id="signaturesToday">0</div>
+            </div>
+            <div class="stat-card">
+                <h3><i class="fas fa-exclamation-triangle"></i> Pendientes Hoy</h3>
+                <div class="stat-value" id="pendingToday">0</div>
+            </div>
+            <div class="stat-card">
+                <h3><i class="fas fa-calendar-alt"></i> Días Festivos</h3>
+                <div class="stat-value" id="totalHolidays">0</div>
+            </div>
+        </div>
+
+        <!-- Pestañas de administración -->
+        <div class="admin-tabs">
+            <button class="admin-tab active" data-tab="users">
+                <i class="fas fa-users"></i> Gestión de Usuarios
+            </button>
+            <button class="admin-tab" data-tab="calendar">
+                <i class="fas fa-calendar"></i> Calendario Festivos
+            </button>
+            <button class="admin-tab" data-tab="reports">
+                <i class="fas fa-file-download"></i> Informes y Descargas
+            </button>
+            <button class="admin-tab" data-tab="settings">
+                <i class="fas fa-cog"></i> Configuración
+            </button>
+        </div>
+
+        <!-- Contenido: Gestión de Usuarios -->
+        <div class="admin-tab-content active" id="usersTab">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2><i class="fas fa-users"></i> Gestión de Usuarios</h2>
+                <button class="btn-primary" id="addUserBtn">
+                    <i class="fas fa-user-plus"></i>
+                    Añadir Trabajador
+                </button>
+            </div>
+            <table class="user-table">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>DNI</th>
+                        <th>Horario</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="usersTableBody">
+                    <!-- Se llenará dinámicamente -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Contenido: Calendario de Festivos -->
+        <div class="admin-tab-content" id="calendarTab">
+            <h2><i class="fas fa-calendar"></i> Calendario de Días Festivos</h2>
+            <p style="color: #64748b; margin-bottom: 20px;">Marca los días festivos. Los trabajadores no recibirán notificaciones para firmar en estos días.</p>
+            
+            <div class="month-selector">
+                <button class="month-nav" id="prevMonth">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <h3 id="currentMonth">Mes Actual</h3>
+                <button class="month-nav" id="nextMonth">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+
+            <div class="calendar-grid" id="calendarGrid">
+                <!-- Se llenará dinámicamente -->
+            </div>
+
+            <div style="margin-top: 20px; padding: 15px; background: #f0f9ff; border-radius: 8px;">
+                <strong><i class="fas fa-info-circle"></i> Leyenda:</strong>
+                <div style="display: flex; gap: 20px; margin-top: 10px; flex-wrap: wrap;">
+                    <span><span style="display: inline-block; width: 20px; height: 20px; background: #fee2e2; border: 2px solid #ef4444; border-radius: 4px; vertical-align: middle;"></span> Día festivo</span>
+                    <span><span style="display: inline-block; width: 20px; height: 20px; background: #f1f5f9; border: 2px solid #e2e8f0; border-radius: 4px; vertical-align: middle;"></span> Fin de semana</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contenido: Configuración -->
+        <div class="admin-tab-content" id="settingsTab">
+            <h2><i class="fas fa-cog"></i> Configuración del Sistema</h2>
+            <p style="color: #64748b; margin-bottom: 20px;">Ajusta los parámetros de funcionamiento de la aplicación</p>
+            
+            <div class="export-section">
+                <h3><i class="fas fa-clock"></i> Restricción Horaria</h3>
+                <p style="color: #64748b; margin-bottom: 15px;">Define la hora a partir de la cual los trabajadores pueden acceder a la aplicación para firmar</p>
+                
+                <div class="date-range-picker" style="align-items: center;">
+                    <div class="form-group" style="max-width: 200px;">
+                        <label>Hora de Activación</label>
+                        <input type="number" id="activationHour" class="form-control" min="0" max="23" value="18" style="text-align: center; font-size: 1.2rem; font-weight: 600;">
+                        <small style="color: #64748b; display: block; margin-top: 5px;">
+                            Hora en formato 24h (0-23)
+                        </small>
+                    </div>
+                    <div class="form-group">
+                        <label style="opacity: 0;">.</label>
+                        <button class="btn-primary" id="saveSettingsBtn">
+                            <i class="fas fa-save"></i>
+                            Guardar Configuración
+                        </button>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 20px; padding: 15px; background: #f0f9ff; border-left: 4px solid #3b82f6; border-radius: 4px;">
+                    <strong><i class="fas fa-info-circle"></i> Configuración Actual:</strong>
+                    <p style="margin: 10px 0 0 0; color: #1e293b;">
+                        La aplicación estará disponible a partir de las <strong id="currentActivationHour">18:00</strong> horas.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contenido: Informes y Descargas -->
+        <div class="admin-tab-content" id="reportsTab">
+            <h2><i class="fas fa-file-download"></i> Informes y Descargas</h2>
+            
+            <div class="export-section">
+                <h3><i class="fas fa-calendar-alt"></i> Descargar Seguimiento de Firmas</h3>
+                <p style="color: #64748b; margin-bottom: 15px;">Exporta el registro de firmas en formato Excel o PDF</p>
+                
+                <div class="date-range-picker">
+                    <div class="form-group">
+                        <label>Desde</label>
+                        <input type="date" id="exportFromDate" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label>Hasta</label>
+                        <input type="date" id="exportToDate" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label>Trabajador</label>
+                        <select id="exportWorker" class="form-control">
+                            <option value="">Todos los trabajadores</option>
+                        </select>
+                        <small style="color: #64748b; display: block; margin-top: 5px;">
+                            Individual: todos los PDFs de ese trabajador<br>
+                            Todos: PDFs de todos los trabajadores
+                        </small>
+                    </div>
+                    <div class="form-group">
+                        <label>Formato</label>
+                        <select id="exportFormat" class="form-control">
+                            <option value="excel">Excel (.xlsx)</option>
+                            <option value="pdf">PDF (.pdf)</option>
+                        </select>
+                        <small style="color: #64748b; display: block; margin-top: 5px;">
+                            Excel: tabla resumen<br>
+                            PDF: firmas completas
+                        </small>
+                    </div>
+                    <button class="btn-primary" id="exportBtn" style="align-self: end;">
+                        <i class="fas fa-download"></i>
+                        Descargar
+                    </button>
+                </div>
+            </div>
+
+            <div class="export-section">
+                <h3><i class="fas fa-user-check"></i> Estadísticas por Trabajador</h3>
+                <div id="workerStats" style="margin-top: 15px;">
+                    <!-- Se llenará dinámicamente -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de autenticación de administrador -->
+    <div class="modal" id="adminAuthModal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-shield-alt"></i> Acceso de Administrador</h3>
+                <button class="close-modal" id="closeAdminAuth">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="adminAuthForm">
+                    <div class="form-group">
+                        <label for="adminPassword">
+                            <i class="fas fa-lock"></i>
+                            Contraseña de Administrador
+                        </label>
+                        <input type="password" id="adminPassword" class="form-control" placeholder="Ingresa la contraseña de administrador" required>
+                    </div>
+                    <div class="modal-buttons">
+                        <button type="submit" class="btn-primary">
+                            <i class="fas fa-sign-in-alt"></i>
+                            Acceder
+                        </button>
+                        <button type="button" class="btn-secondary" id="cancelAdminAuth">
+                            <i class="fas fa-times"></i>
+                            Cancelar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para añadir/editar usuario -->
+    <div class="modal" id="userModal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-user-plus"></i> <span id="userModalTitle">Añadir Trabajador</span></h3>
+                <button class="close-modal" id="closeUserModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="userForm">
+                    <div class="form-group">
+                        <label for="userName">
+                            <i class="fas fa-user"></i>
+                            Nombre Completo
+                        </label>
+                        <input type="text" id="userName" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="userDNI">
+                            <i class="fas fa-id-card"></i>
+                            DNI
+                        </label>
+                        <input type="text" id="userDNI" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="userPassword">
+                            <i class="fas fa-lock"></i>
+                            Contraseña
+                        </label>
+                        <input type="text" id="userPassword" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="userSchedule">
+                            <i class="fas fa-clock"></i>
+                            Horario
+                        </label>
+                        <select id="userSchedule" class="form-control" required>
+                            <option value="PLANTA EXTERNA: 08:00 - 14:00 / 15:00 - 17:00">PLANTA EXTERNA</option>
+                            <option value="OFICINA: 08:00 - 16:00">OFICINA</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="userEmail">
+                            <i class="fas fa-envelope"></i>
+                            Email (opcional)
+                        </label>
+                        <input type="email" id="userEmail" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="userPhone">
+                            <i class="fas fa-phone"></i>
+                            Teléfono (opcional)
+                        </label>
+                        <input type="tel" id="userPhone" class="form-control">
+                    </div>
+                    <div class="modal-buttons">
+                        <button type="submit" class="btn-primary">
+                            <i class="fas fa-save"></i>
+                            Guardar
+                        </button>
+                        <button type="button" class="btn-secondary" id="cancelUserModal">
+                            <i class="fas fa-times"></i>
+                            Cancelar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="status-message" id="statusMessage"></div>
+    </div>
+
+    <!-- Marca de agua -->
+    <footer style="
+        text-align: center;
+        padding: 20px;
+        background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+        border-top: 2px solid #e2e8f0;
+        margin-top: 40px;
+        font-size: 0.85rem;
+        color: #64748b;
+    ">
+        <div style="margin-bottom: 8px;">
+            <strong style="color: #1e293b;">Creada por Alexander Arroyave</strong>
+        </div>
+        <div style="margin-bottom: 8px;">
+            para <strong style="color: #3b82f6;">Redes Carreras SL</strong>
+        </div>
+        <div style="margin-bottom: 8px; color: #10b981;">
+            <i class="fas fa-cloud"></i> <strong>Versión Online con Firebase</strong>
+        </div>
+        <div style="font-size: 0.75rem; color: #94a3b8;">
+            2.0.0 - Funciona online desde cualquier lugar
+        </div>
+    </footer>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="app-online.js"></script>
+</body>
+</html>

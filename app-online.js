@@ -553,24 +553,25 @@ class RegistroHorarioApp {
             this.canvas.addEventListener('touchstart', (e) => {
                 e.preventDefault();
                 const touch = e.touches[0];
-                const rect = this.canvas.getBoundingClientRect();
-                const x = touch.clientX - rect.left;
-                const y = touch.clientY - rect.top;
-                this.startDrawing({ clientX: x, clientY: y });
+                this.startDrawing({ clientX: touch.clientX, clientY: touch.clientY }, this.canvas, this.ctx);
             });
             
             this.canvas.addEventListener('touchmove', (e) => {
                 e.preventDefault();
                 const touch = e.touches[0];
-                const rect = this.canvas.getBoundingClientRect();
-                const x = touch.clientX - rect.left;
-                const y = touch.clientY - rect.top;
-                this.draw({ clientX: x, clientY: y });
+                this.draw({ clientX: touch.clientX, clientY: touch.clientY }, this.canvas, this.ctx);
             });
             
             this.canvas.addEventListener('touchend', (e) => {
                 e.preventDefault();
                 this.stopDrawing();
+            });
+            
+            // Evento para evitar zoom en dobles tap
+            this.canvas.addEventListener('touchstart', (e) => {
+                if (e.touches.length > 1) {
+                    e.preventDefault();
+                }
             });
         }
         
@@ -593,24 +594,25 @@ class RegistroHorarioApp {
             this.modalCanvas.addEventListener('touchstart', (e) => {
                 e.preventDefault();
                 const touch = e.touches[0];
-                const rect = this.modalCanvas.getBoundingClientRect();
-                const x = touch.clientX - rect.left;
-                const y = touch.clientY - rect.top;
-                this.startModalDrawing({ clientX: x, clientY: y });
+                this.startModalDrawing({ clientX: touch.clientX, clientY: touch.clientY });
             });
             
             this.modalCanvas.addEventListener('touchmove', (e) => {
                 e.preventDefault();
                 const touch = e.touches[0];
-                const rect = this.modalCanvas.getBoundingClientRect();
-                const x = touch.clientX - rect.left;
-                const y = touch.clientY - rect.top;
-                this.drawModal({ clientX: x, clientY: y });
+                this.drawModal({ clientX: touch.clientX, clientY: touch.clientY });
             });
             
             this.modalCanvas.addEventListener('touchend', (e) => {
                 e.preventDefault();
                 this.stopModalDrawing();
+            });
+            
+            // Evento para evitar zoom en dobles tap
+            this.modalCanvas.addEventListener('touchstart', (e) => {
+                if (e.touches.length > 1) {
+                    e.preventDefault();
+                }
             });
         }
     }
@@ -619,8 +621,13 @@ class RegistroHorarioApp {
     startDrawing(e, canvas, ctx) {
         this.isDrawing = true;
         const rect = canvas.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
+        
+        // Calcular escala para dispositivos móviles
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        
+        const x = (e.clientX - rect.left) * scaleX;
+        const y = (e.clientY - rect.top) * scaleY;
         
         ctx.beginPath();
         ctx.moveTo(x, y);
@@ -630,8 +637,13 @@ class RegistroHorarioApp {
         if (!this.isDrawing) return;
         
         const rect = canvas.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
+        
+        // Calcular escala para dispositivos móviles
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        
+        const x = (e.clientX - rect.left) * scaleX;
+        const y = (e.clientY - rect.top) * scaleY;
         
         ctx.lineTo(x, y);
         ctx.stroke();
@@ -644,14 +656,30 @@ class RegistroHorarioApp {
     startModalDrawing(e) {
         this.isDrawing = true;
         const rect = this.modalCanvas.getBoundingClientRect();
+        
+        // Calcular escala para dispositivos móviles
+        const scaleX = this.modalCanvas.width / rect.width;
+        const scaleY = this.modalCanvas.height / rect.height;
+        
+        const x = (e.clientX - rect.left) * scaleX;
+        const y = (e.clientY - rect.top) * scaleY;
+        
         this.modalCtx.beginPath();
-        this.modalCtx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+        this.modalCtx.moveTo(x, y);
     }
 
     drawModal(e) {
         if (!this.isDrawing) return;
         const rect = this.modalCanvas.getBoundingClientRect();
-        this.modalCtx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+        
+        // Calcular escala para dispositivos móviles
+        const scaleX = this.modalCanvas.width / rect.width;
+        const scaleY = this.modalCanvas.height / rect.height;
+        
+        const x = (e.clientX - rect.left) * scaleX;
+        const y = (e.clientY - rect.top) * scaleY;
+        
+        this.modalCtx.lineTo(x, y);
         this.modalCtx.stroke();
     }
 
@@ -1757,8 +1785,13 @@ class RegistroHorarioApp {
     startDrawing(e, canvas, ctx) {
         this.isDrawing = true;
         const rect = canvas.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
+        
+        // Calcular escala para dispositivos móviles
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        
+        const x = (e.clientX - rect.left) * scaleX;
+        const y = (e.clientY - rect.top) * scaleY;
         
         ctx.beginPath();
         ctx.moveTo(x, y);
@@ -1768,8 +1801,13 @@ class RegistroHorarioApp {
         if (!this.isDrawing) return;
         
         const rect = canvas.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
+        
+        // Calcular escala para dispositivos móviles
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        
+        const x = (e.clientX - rect.left) * scaleX;
+        const y = (e.clientY - rect.top) * scaleY;
         
         ctx.lineTo(x, y);
         ctx.stroke();

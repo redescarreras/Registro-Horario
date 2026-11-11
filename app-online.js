@@ -858,12 +858,53 @@ class RegistroHorarioApp {
                 div.style.cssText = 'background: white; border: 1px solid #e2e8f0; padding: 15px; border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid green;';
                 div.innerHTML = `
                     <div>
-                        <strong>${new Date(sig.date).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}</strong>
+                        <strong>${new Date(sig.date).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</strong>
                         <div style="font-size:0.85rem; color:gray;">Hora: ${sig.time}</div>
                     </div>
+                    <button class="btn-primary" style="padding: 8px 15px; font-size: 0.9rem;" onclick="window.app.downloadPastSignature('${sig.timestamp}', '${this.currentUser}')">
+                        <i class="fas fa-download"></i> PDF
+                    </button>
                 `;
                 container.appendChild(div);
             });
+        }
+    }
+
+    // NUEVA FUNCIÓN: Descarga el PDF de una firma específica del pasado
+    async downloadPastSignature(timestamp, workerName = null) {
+        try {
+            this.showLoading('Generando PDF...');
+            const targetWorker = workerName || this.currentUser;
+            const signatures = await this.getSignaturesFromFirebase(targetWorker);
+            
+            // Buscar la firma exacta por su timestamp (marca de tiempo)
+            const signature = signatures.find(sig => String(sig.timestamp) === String(timestamp));
+            
+            if (!signature) {
+                this.hideLoading();
+                this.showError('No se pudo encontrar la firma seleccionada.');
+                return;
+            }
+
+            // Preparar los datos exactos para el PDF
+            const pdfData = {
+                trabajador: targetWorker,
+                dni: TRABAJADORES[targetWorker].dni,
+                horario: TRABAJADORES[targetWorker].horario,
+                fecha: new Date(signature.date).toLocaleDateString('es-ES'),
+                hora: signature.time,
+                firma: signature.signature
+            };
+
+            // Llamar al generador de PDF original
+            await this.generatePDF(pdfData);
+            
+            this.hideLoading();
+            this.showSuccess('PDF descargado correctamente.');
+        } catch (error) {
+            console.error('Error al descargar PDF pasado:', error);
+            this.hideLoading();
+            this.showError('Error al generar el PDF.');
         }
     }
 

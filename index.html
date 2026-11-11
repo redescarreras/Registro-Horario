@@ -97,6 +97,7 @@
     </style>
 </head>
 <body>
+    <!-- Alertas y Carga -->
     <div class="config-warning" id="configWarning" style="display: block;">
         <h3><i class="fas fa-exclamation-triangle"></i> Configuración Requerida</h3>
         <p><strong>¡Atención!</strong> Esta aplicación necesita configuración de Firebase para funcionar online.</p>
@@ -107,11 +108,13 @@
         <div class="loading-text">Cargando aplicación...</div>
     </div>
 
+    <!-- Botón flotante para el Admin -->
     <button class="admin-access-btn" id="adminAccessBtn" style="display: none;">
         <i class="fas fa-user-shield"></i>
         Admin
     </button>
     
+    <!-- Encabezado Común -->
     <header class="header">
         <img src="logo-redes_Transparente-216x216.png" alt="Logo" class="logo">
         <h1>Registro Horario Laboral - Online</h1>
@@ -127,7 +130,7 @@
         </div>
     </header>
 
-    <!-- Restricción de tiempo -->
+    <!-- PANTALLA 1: Restricción de tiempo -->
     <div class="time-restriction" id="timeRestriction">
         <div class="restriction-content">
             <i class="fas fa-clock"></i>
@@ -137,7 +140,7 @@
         </div>
     </div>
 
-    <!-- Menú principal -->
+    <!-- PANTALLA 2: Menú principal -->
     <nav class="main-menu" id="mainMenu" style="display: none;">
         <div class="menu-header">
             <h2><i class="fas fa-tachometer-alt"></i> Panel de Control</h2>
@@ -162,7 +165,7 @@
         </div>
     </nav>
 
-    <!-- Autenticación para menú -->
+    <!-- PANTALLA 3: Autenticación -->
     <div class="auth-screen" id="authScreen" style="display: none;">
         <div class="auth-content">
             <h2><i class="fas fa-shield-alt"></i> Iniciar Sesión</h2>
@@ -182,23 +185,28 @@
                     </label>
                     <input type="password" id="authPassword" name="authPassword" placeholder="Ingresa tu contraseña" required>
                 </div>
+                
                 <!-- MEJORA: Casilla para recordar sesión -->
                 <label class="checkbox-container" style="justify-content: center; margin: 15px 0;">
                     <input type="checkbox" id="rememberMe" checked>
                     <span class="checkmark"></span>
                     Recordarme en este dispositivo (Auto-login)
                 </label>
+                
                 <div class="auth-buttons">
                     <button type="submit" class="btn-primary">
                         <i class="fas fa-sign-in-alt"></i>
                         Acceder
+                    </button>
+                    <button type="button" class="btn-secondary" id="backToSignBtn" style="display:none;">
+                        <i class="fas fa-arrow-left"></i> Volver a Firmar
                     </button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Pantalla de firma diaria -->
+    <!-- PANTALLA 4: Formulario de firma diaria -->
     <main class="main-content" id="mainContent" style="display: none;">
         <div class="content-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
             <h2 style="margin: 0;"><i class="fas fa-signature"></i> Firma del Día</h2>
@@ -217,7 +225,7 @@
         <form class="form" id="registroForm">
             <div class="form-group">
                 <label for="trabajador"><i class="fas fa-user"></i> Trabajador</label>
-                <!-- Cuando hay auto-login, esto se llena automáticamente -->
+                <!-- Evita que lo cambien si ya iniciaron sesión con su nombre -->
                 <select id="trabajador" name="trabajador" required style="pointer-events: none; background: #f8fafc;"></select>
             </div>
 
@@ -231,6 +239,7 @@
                 <input type="text" id="horario" name="horario" readonly style="font-weight: 600; color: var(--primary-color);">
             </div>
 
+            <!-- Contraseña oculta porque ya se validó en el login -->
             <div class="form-group" style="display: none;">
                 <input type="password" id="password" name="password">
             </div>
@@ -239,7 +248,7 @@
             <div class="signature-section" style="background: #f8fafc; padding: 20px; border-radius: 12px; border: 1px solid var(--border-color);">
                 <label style="font-size: 1.1rem;"><i class="fas fa-pen-nib"></i> Tu Firma Digital</label>
 
-                <!-- Opción 1: Usar firma guardada (Se muestra si existe en Firebase) -->
+                <!-- Contenedor 1: Usar firma guardada -->
                 <div id="savedSignatureContainer" style="display: none; text-align: center; margin-top: 15px;">
                      <div style="background: #dcfce7; color: #166534; padding: 10px; border-radius: 8px; display: inline-block; margin-bottom: 15px; font-weight: 600;">
                          <i class="fas fa-check-circle"></i> Tienes una firma guardada
@@ -259,10 +268,10 @@
                      </div>
                 </div>
 
-                <!-- Opción 2: Dibujar nueva firma en Canvas -->
+                <!-- Contenedor 2: Dibujar nueva firma -->
                 <div id="drawSignatureContainer" style="display: block;">
                     <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 10px; text-align: center;">Dibuja tu firma en el recuadro blanco inferior</p>
-                    <canvas id="signatureCanvas" width="400" height="150" style="background: white; width: 100%; border-radius: 8px;"></canvas>
+                    <canvas id="signatureCanvas" width="400" height="150" style="background: white; width: 100%; border-radius: 8px; border: 2px solid #cbd5e1; cursor: crosshair; touch-action: none;"></canvas>
                     <button type="button" class="btn-secondary" id="clearSignature" style="margin: 10px auto;">
                         <i class="fas fa-eraser"></i> Limpiar Recuadro
                     </button>
@@ -287,7 +296,7 @@
         </form>
     </main>
 
-    <!-- Pantallas adicionales (Firmas pendientes, completadas, admin panel, modals) mantienen la estructura anterior -->
+    <!-- PANTALLA 5: Firmas pendientes -->
     <div class="pending-signatures-screen" id="pendingSignaturesScreen" style="display: none;">
         <div class="content-header">
             <h2><i class="fas fa-calendar-check"></i> Firmas Pendientes</h2>
@@ -296,6 +305,7 @@
         <div class="pending-content"><div class="user-info" id="pendingUserInfo"></div><div class="pending-list" id="pendingList"></div></div>
     </div>
 
+    <!-- PANTALLA 6: Firmas completadas -->
     <div class="completed-signatures-screen" id="completedSignaturesScreen" style="display: none;">
         <div class="content-header">
             <h2><i class="fas fa-folder-open"></i> Firmas Completadas</h2>
@@ -304,25 +314,208 @@
         <div class="completed-content"><div class="user-info" id="completedUserInfo"></div><div class="completed-list" id="completedList"></div></div>
     </div>
 
+    <!-- Modal para firma individual -->
     <div class="modal" id="signSpecificDayModal" style="display: none;">
         <div class="modal-content">
             <div class="modal-header">
-                <h3><i class="fas fa-calendar-day"></i> Firmar Día</h3>
+                <h3><i class="fas fa-calendar-day"></i> Firmar Día Específico</h3>
                 <button class="close-modal" id="closeModal">&times;</button>
             </div>
             <div class="modal-body">
                 <div class="day-info" id="modalDayInfo"></div>
                 <div class="signature-section">
-                    <label><i class="fas fa-signature"></i> Firma</label>
-                    <div class="signature-container">
-                        <canvas id="modalSignatureCanvas" width="400" height="150"></canvas>
-                        <button type="button" class="btn-secondary" id="clearModalSignature">Limpiar</button>
+                    <label><i class="fas fa-signature"></i> Dibuja tu Firma Digital</label>
+                    <div class="signature-container" style="text-align: center;">
+                        <canvas id="modalSignatureCanvas" width="400" height="150" style="background: white; border: 2px solid #cbd5e1; border-radius: 8px; width: 100%; touch-action: none;"></canvas>
+                        <button type="button" class="btn-secondary" id="clearModalSignature" style="margin: 10px auto;">
+                            <i class="fas fa-eraser"></i> Limpiar
+                        </button>
                     </div>
                 </div>
                 <div class="modal-buttons">
-                    <button class="btn-primary" id="confirmSignature">Confirmar</button>
-                    <button class="btn-secondary" id="cancelSignature">Cancelar</button>
+                    <button class="btn-primary" id="confirmSignature"><i class="fas fa-check"></i> Confirmar</button>
+                    <button class="btn-secondary" id="cancelSignature"><i class="fas fa-times"></i> Cancelar</button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PANEL DE ADMINISTRADOR -->
+    <div class="admin-panel" id="adminPanel">
+        <div class="admin-header">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h1 style="margin: 0; font-size: 2rem;">
+                        <i class="fas fa-user-shield"></i>
+                        Panel de Administrador
+                    </h1>
+                    <p style="margin: 10px 0 0 0; opacity: 0.9;">Gestión del Sistema de Registro Horario - ONLINE</p>
+                </div>
+                <button class="btn-secondary" id="exitAdminBtn" style="background: rgba(255,255,255,0.2); color: white; border: 2px solid white;">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Salir
+                </button>
+            </div>
+        </div>
+
+        <div class="admin-stats">
+            <div class="stat-card">
+                <h3><i class="fas fa-users"></i> Total Trabajadores</h3>
+                <div class="stat-value" id="totalWorkers">0</div>
+            </div>
+            <div class="stat-card">
+                <h3><i class="fas fa-check-circle"></i> Firmas Hoy</h3>
+                <div class="stat-value" id="signaturesToday">0</div>
+            </div>
+            <div class="stat-card">
+                <h3><i class="fas fa-exclamation-triangle"></i> Pendientes Hoy</h3>
+                <div class="stat-value" id="pendingToday">0</div>
+            </div>
+            <div class="stat-card">
+                <h3><i class="fas fa-calendar-alt"></i> Días Festivos</h3>
+                <div class="stat-value" id="totalHolidays">0</div>
+            </div>
+        </div>
+
+        <div class="admin-tabs">
+            <button class="admin-tab active" data-tab="users">
+                <i class="fas fa-users"></i> Gestión de Usuarios
+            </button>
+            <button class="admin-tab" data-tab="calendar">
+                <i class="fas fa-calendar"></i> Calendario Festivos
+            </button>
+            <button class="admin-tab" data-tab="reports">
+                <i class="fas fa-file-download"></i> Informes y Descargas
+            </button>
+            <button class="admin-tab" data-tab="settings">
+                <i class="fas fa-cog"></i> Configuración
+            </button>
+        </div>
+
+        <div class="admin-tab-content active" id="usersTab">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2><i class="fas fa-users"></i> Gestión de Usuarios</h2>
+                <button class="btn-primary" id="addUserBtn">
+                    <i class="fas fa-user-plus"></i> Añadir Trabajador
+                </button>
+            </div>
+            <table class="user-table">
+                <thead>
+                    <tr><th>Nombre</th><th>DNI</th><th>Horario</th><th>Estado</th><th>Acciones</th></tr>
+                </thead>
+                <tbody id="usersTableBody"></tbody>
+            </table>
+        </div>
+
+        <div class="admin-tab-content" id="calendarTab">
+            <h2><i class="fas fa-calendar"></i> Calendario de Días Festivos</h2>
+            <p style="color: #64748b; margin-bottom: 20px;">Marca los días festivos. Los trabajadores no recibirán notificaciones para firmar en estos días.</p>
+            <div class="month-selector">
+                <button class="month-nav" id="prevMonth"><i class="fas fa-chevron-left"></i></button>
+                <h3 id="currentMonth">Mes Actual</h3>
+                <button class="month-nav" id="nextMonth"><i class="fas fa-chevron-right"></i></button>
+            </div>
+            <div class="calendar-grid" id="calendarGrid"></div>
+        </div>
+
+        <div class="admin-tab-content" id="settingsTab">
+            <h2><i class="fas fa-cog"></i> Configuración del Sistema</h2>
+            <div class="export-section">
+                <h3><i class="fas fa-clock"></i> Restricción Horaria</h3>
+                <p style="color: #64748b; margin-bottom: 15px;">Define la hora a partir de la cual los trabajadores pueden acceder a la aplicación para firmar</p>
+                <div class="date-range-picker" style="align-items: center;">
+                    <div class="form-group" style="max-width: 200px;">
+                        <label>Hora de Activación</label>
+                        <input type="number" id="activationHour" class="form-control" min="0" max="23" value="18" style="text-align: center; font-size: 1.2rem; font-weight: 600;">
+                    </div>
+                    <div class="form-group">
+                        <label style="opacity: 0;">.</label>
+                        <button class="btn-primary" id="saveSettingsBtn"><i class="fas fa-save"></i> Guardar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="admin-tab-content" id="reportsTab">
+            <h2><i class="fas fa-file-download"></i> Informes y Descargas</h2>
+            <div class="export-section">
+                <h3><i class="fas fa-calendar-alt"></i> Descargar Seguimiento de Firmas</h3>
+                <div class="date-range-picker">
+                    <div class="form-group">
+                        <label>Desde</label><input type="date" id="exportFromDate" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label>Hasta</label><input type="date" id="exportToDate" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label>Trabajador</label>
+                        <select id="exportWorker" class="form-control"><option value="">Todos los trabajadores</option></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Formato</label>
+                        <select id="exportFormat" class="form-control">
+                            <option value="excel">Excel (.xlsx)</option>
+                            <option value="pdf">PDF (.pdf)</option>
+                        </select>
+                    </div>
+                    <button class="btn-primary" id="exportBtn" style="align-self: end;"><i class="fas fa-download"></i> Descargar</button>
+                </div>
+            </div>
+            <div class="export-section">
+                <h3><i class="fas fa-user-check"></i> Estadísticas por Trabajador</h3>
+                <div id="workerStats" style="margin-top: 15px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de autenticación de administrador -->
+    <div class="modal" id="adminAuthModal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-shield-alt"></i> Acceso de Administrador</h3>
+                <button class="close-modal" id="closeAdminAuth">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="adminAuthForm">
+                    <div class="form-group">
+                        <label for="adminPassword"><i class="fas fa-lock"></i> Contraseña de Administrador</label>
+                        <input type="password" id="adminPassword" class="form-control" placeholder="Ingresa la contraseña" required>
+                    </div>
+                    <div class="modal-buttons">
+                        <button type="submit" class="btn-primary"><i class="fas fa-sign-in-alt"></i> Acceder</button>
+                        <button type="button" class="btn-secondary" id="cancelAdminAuth"><i class="fas fa-times"></i> Cancelar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para añadir/editar usuario -->
+    <div class="modal" id="userModal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-user-plus"></i> <span id="userModalTitle">Añadir Trabajador</span></h3>
+                <button class="close-modal" id="closeUserModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="userForm">
+                    <div class="form-group"><label>Nombre Completo</label><input type="text" id="userName" class="form-control" required></div>
+                    <div class="form-group"><label>DNI</label><input type="text" id="userDNI" class="form-control" required></div>
+                    <div class="form-group"><label>Contraseña</label><input type="text" id="userPassword" class="form-control" required></div>
+                    <div class="form-group">
+                        <label>Horario</label>
+                        <select id="userSchedule" class="form-control" required>
+                            <option value="PLANTA EXTERNA: 08:00 - 14:00 / 15:00 - 17:00">PLANTA EXTERNA</option>
+                            <option value="OFICINA: 08:00 - 16:00">OFICINA</option>
+                        </select>
+                    </div>
+                    <div class="form-group"><label>Email</label><input type="email" id="userEmail" class="form-control"></div>
+                    <div class="form-group"><label>Teléfono</label><input type="tel" id="userPhone" class="form-control"></div>
+                    <div class="modal-buttons">
+                        <button type="submit" class="btn-primary"><i class="fas fa-save"></i> Guardar</button>
+                        <button type="button" class="btn-secondary" id="cancelUserModal"><i class="fas fa-times"></i> Cancelar</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>

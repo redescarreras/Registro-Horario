@@ -576,12 +576,14 @@ class RegistroHorarioApp {
         doc.setFontSize(24);
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(37, 99, 235);
-        doc.text('REGISTRO HORARIO LABORAL', 20, 30);
+        // Desplazamos el título a la derecha (de X: 20 a X: 45) y lo centramos un poco verticalmente
+        doc.text('REGISTRO HORARIO LABORAL', 45, 28);
         
         // Subtítulo oficial
         doc.setFontSize(10);
         doc.setTextColor(71, 85, 105);
-        doc.text('Documento Oficial - Sistema de Registro Horario', 20, 38);
+        // Desplazamos el subtítulo a la derecha (de X: 20 a X: 45)
+        doc.text('Documento Oficial - Sistema de Registro Horario', 45, 36);
         doc.setTextColor(0, 0, 0);
         
         // Línea decorativa

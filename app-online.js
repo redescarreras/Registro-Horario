@@ -570,8 +570,8 @@ class RegistroHorarioApp {
             this.canvas.addEventListener('mouseout', () => this.stopDrawing());
             
             // Touch
-            this.canvas.addEventListener('touchstart', (e) => { e.preventDefault(); const touch = e.touches[0]; const rect = this.canvas.getBoundingClientRect(); this.startDrawing({ clientX: touch.clientX - rect.left, clientY: touch.clientY - rect.top }, this.canvas, this.ctx); });
-            this.canvas.addEventListener('touchmove', (e) => { e.preventDefault(); const touch = e.touches[0]; const rect = this.canvas.getBoundingClientRect(); this.draw({ clientX: touch.clientX - rect.left, clientY: touch.clientY - rect.top }, this.canvas, this.ctx); });
+            this.canvas.addEventListener('touchstart', (e) => { e.preventDefault(); this.startDrawing(e.touches[0], this.canvas, this.ctx); });
+            this.canvas.addEventListener('touchmove', (e) => { e.preventDefault(); this.draw(e.touches[0], this.canvas, this.ctx); });
             this.canvas.addEventListener('touchend', (e) => { e.preventDefault(); this.stopDrawing(); });
         }
 
@@ -585,14 +585,30 @@ class RegistroHorarioApp {
             this.modalCanvas.addEventListener('mouseout', () => this.stopDrawing());
             
             // Touch
-            this.modalCanvas.addEventListener('touchstart', (e) => { e.preventDefault(); const touch = e.touches[0]; const rect = this.modalCanvas.getBoundingClientRect(); this.startDrawing({ clientX: touch.clientX - rect.left, clientY: touch.clientY - rect.top }, this.modalCanvas, this.modalCtx); });
-            this.modalCanvas.addEventListener('touchmove', (e) => { e.preventDefault(); const touch = e.touches[0]; const rect = this.modalCanvas.getBoundingClientRect(); this.draw({ clientX: touch.clientX - rect.left, clientY: touch.clientY - rect.top }, this.modalCanvas, this.modalCtx); });
+            this.modalCanvas.addEventListener('touchstart', (e) => { e.preventDefault(); this.startDrawing(e.touches[0], this.modalCanvas, this.modalCtx); });
+            this.modalCanvas.addEventListener('touchmove', (e) => { e.preventDefault(); this.draw(e.touches[0], this.modalCanvas, this.modalCtx); });
             this.modalCanvas.addEventListener('touchend', (e) => { e.preventDefault(); this.stopDrawing(); });
         }
     }
 
-    startDrawing(e, canvas, ctx) { this.isDrawing = true; const rect = canvas.getBoundingClientRect(); ctx.beginPath(); ctx.moveTo(e.clientX, e.clientY); }
-    draw(e, canvas, ctx) { if (!this.isDrawing) return; ctx.lineTo(e.clientX, e.clientY); ctx.stroke(); }
+    startDrawing(e, canvas, ctx) { 
+        this.isDrawing = true; 
+        const rect = canvas.getBoundingClientRect(); 
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        ctx.beginPath(); 
+        ctx.moveTo((e.clientX - rect.left) * scaleX, (e.clientY - rect.top) * scaleY); 
+    }
+    
+    draw(e, canvas, ctx) { 
+        if (!this.isDrawing) return; 
+        const rect = canvas.getBoundingClientRect(); 
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        ctx.lineTo((e.clientX - rect.left) * scaleX, (e.clientY - rect.top) * scaleY); 
+        ctx.stroke(); 
+    }
+    
     stopDrawing() { this.isDrawing = false; }
     
     clearSignature() { if (this.ctx) this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height); }

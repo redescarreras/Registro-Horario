@@ -1014,12 +1014,45 @@ class RegistroHorarioApp {
                 <td>${worker.horario}</td>
                 <td><span class="status-badge ${worker.active ? 'status-active' : 'status-inactive'}">${worker.active ? 'Activo' : 'Inactivo'}</span></td>
                 <td>
-                    <button class="btn-icon" onclick="window.app.editUser('${workerName}')"><i class="fas fa-edit"></i></button>
-                    <button class="btn-icon" onclick="window.app.toggleUserStatus('${workerName}')"><i class="fas fa-toggle-${worker.active ? 'on' : 'off'}"></i></button>
-                    <button class="btn-icon delete" onclick="window.app.deleteUser('${workerName}')"><i class="fas fa-trash"></i></button>
+                    <button class="btn-icon" title="Ver Firmas" onclick="window.app.viewWorkerSignatures('${workerName}')"><i class="fas fa-folder-open"></i></button>
+                    <button class="btn-icon" title="Editar Trabajador" onclick="window.app.editUser('${workerName}')"><i class="fas fa-edit"></i></button>
+                    <button class="btn-icon" title="Activar/Desactivar" onclick="window.app.toggleUserStatus('${workerName}')"><i class="fas fa-toggle-${worker.active ? 'on' : 'off'}"></i></button>
+                    <button class="btn-icon delete" title="Eliminar Trabajador" onclick="window.app.deleteUser('${workerName}')"><i class="fas fa-trash"></i></button>
                 </td>
             `;
             tbody.appendChild(row);
+        });
+    }
+
+    // NUEVA FUNCIÓN: Admin puede ver y descargar las firmas de un trabajador específico
+    async viewWorkerSignatures(workerName) {
+        document.getElementById('adminSignaturesWorkerName').textContent = workerName;
+        const container = document.getElementById('adminSignaturesList');
+        container.innerHTML = '<p style="text-align:center;">Cargando firmas de la base de datos...</p>';
+        document.getElementById('adminSignaturesModal').style.display = 'flex';
+
+        const signatures = await this.getSignaturesFromFirebase(workerName);
+        container.innerHTML = '';
+
+        if (signatures.length === 0) {
+            container.innerHTML = '<p style="text-align:center; color:gray; padding: 20px;">Este trabajador no tiene firmas registradas aún.</p>';
+            return;
+        }
+
+        signatures.sort((a, b) => new Date(b.date) - new Date(a.date));
+        signatures.forEach(sig => {
+            const div = document.createElement('div');
+            div.style.cssText = 'background: #f8fafc; border: 1px solid #e2e8f0; padding: 12px; border-radius: 8px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid var(--primary-color);';
+            div.innerHTML = `
+                <div>
+                    <strong>${new Date(sig.date).toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short', year:'numeric' })}</strong>
+                    <div style="font-size:0.85rem; color:gray;">Hora: ${sig.time}</div>
+                </div>
+                <button class="btn-primary" style="padding: 6px 12px; font-size: 0.85rem;" onclick="window.app.downloadPastSignature('${sig.timestamp}', '${workerName}')">
+                    <i class="fas fa-download"></i> PDF
+                </button>
+            `;
+            container.appendChild(div);
         });
     }
 

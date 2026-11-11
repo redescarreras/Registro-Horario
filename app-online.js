@@ -524,37 +524,174 @@ class RegistroHorarioApp {
         }
     }
 
+    getLogoBase64() {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = this.width;
+                canvas.height = this.height;
+                ctx.drawImage(this, 0, 0);
+                resolve(canvas.toDataURL('image/png'));
+            };
+            img.onerror = reject;
+            // Si hay fallo al cargar el logo, resuelve vacío para no bloquear el PDF
+            img.src = 'logo-redes_Transparente-216x216.png';
+        });
+    }
+
     async generatePDF(data) {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
         
+        // Configurar fuente
         doc.setFont('helvetica');
-        doc.setFontSize(24);
-        doc.setTextColor(37, 99, 235);
-        doc.text('REGISTRO HORARIO LABORAL', 20, 30);
         
-        doc.setFontSize(10);
-        doc.setTextColor(71, 85, 105);
-        doc.text('Documento Oficial - Sistema de Registro', 20, 38);
-        doc.setDrawColor(37, 99, 235);
-        doc.line(20, 45, 190, 45);
-        
-        doc.setTextColor(0, 0, 0);
-        doc.setFontSize(11);
-        doc.text(`Nombre: ${data.trabajador}`, 20, 60);
-        doc.text(`DNI: ${data.dni}`, 20, 70);
-        doc.text(`Horario: ${data.horario}`, 20, 80);
-        doc.text(`Fecha Registro: ${data.fecha}`, 20, 90);
-        doc.text(`Hora: ${data.hora}`, 20, 100);
-        
-        if (data.firma && data.firma !== 'data:,') {
-            doc.text('FIRMA DIGITAL:', 20, 120);
-            doc.setDrawColor(200, 200, 200);
-            doc.rect(20, 125, 100, 40);
-            doc.addImage(data.firma, 'PNG', 22, 127, 96, 36);
+        // Agregar logo de la empresa
+        let logoBase64 = '';
+        try {
+            logoBase64 = await this.getLogoBase64();
+        } catch (error) {
+            console.warn('No se pudo cargar el logo:', error);
         }
         
+        // Header con logo y título
+        if (logoBase64) {
+            doc.addImage(logoBase64, 'PNG', 15, 15, 25, 25);
+        }
+        
+        // Título principal
+        doc.setFontSize(24);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(37, 99, 235);
+        doc.text('REGISTRO HORARIO LABORAL', 45, 30);
+        
+        // Subtítulo oficial
+        doc.setFontSize(10);
+        doc.setTextColor(71, 85, 105);
+        doc.text('Documento Oficial - Sistema de Registro Horario', 45, 38);
+        doc.setTextColor(0, 0, 0);
+        
+        // Línea decorativa
+        doc.setDrawColor(37, 99, 235);
+        doc.setLineWidth(1);
+        doc.line(20, 45, 190, 45);
+        
+        // Información de horarios en recuadro
+        doc.setFillColor(248, 250, 252);
+        doc.roundedRect(20, 50, 170, 20, 3, 3, 'F');
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(71, 85, 105);
+        doc.text('HORARIOS LABORALES:', 25, 58);
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(10);
+        doc.text('PLANTA EXTERNA: 08:00 - 14:00 / 15:00 - 17:00', 25, 63);
+        doc.text('OFICINA: 08:00 - 16:00', 25, 67);
+        
+        // Sección de datos del trabajador
+        doc.setFillColor(37, 99, 235);
+        doc.roundedRect(20, 80, 170, 8, 2, 2, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.text('DATOS DEL TRABAJADOR', 25, 86);
+        
+        // Datos en tabla
+        doc.setTextColor(0, 0, 0);
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(11);
+        
+        // Fila 1
+        doc.setFillColor(248, 250, 252);
+        doc.roundedRect(20, 95, 85, 8, 1, 1, 'F');
+        doc.roundedRect(105, 95, 85, 8, 1, 1, 'F');
+        doc.setFont('helvetica', 'bold');
+        doc.text('Nombre y Apellidos:', 23, 101);
+        doc.text('DNI:', 108, 101);
+        doc.setFont('helvetica', 'normal');
+        const trabajadorText = data.trabajador || 'Trabajador no especificado';
+        doc.text(trabajadorText.length > 25 ? trabajadorText.substring(0, 25) + '...' : trabajadorText, 23, 105);
+        doc.text(data.dni || 'No disponible', 108, 105);
+        
+        // Fila 2
+        doc.setFillColor(248, 250, 252);
+        doc.roundedRect(20, 110, 85, 8, 1, 1, 'F');
+        doc.roundedRect(105, 110, 85, 8, 1, 1, 'F');
+        doc.setFont('helvetica', 'bold');
+        doc.text('Fecha de Registro:', 23, 116);
+        doc.text('Hora de Registro:', 108, 116);
+        doc.setFont('helvetica', 'normal');
+        doc.text(data.fecha || 'No especificada', 23, 120);
+        doc.text(data.hora || 'No especificada', 108, 120);
+        
+        // Horario laboral
+        doc.setFillColor(248, 250, 252);
+        doc.roundedRect(20, 125, 170, 8, 1, 1, 'F');
+        doc.setFont('helvetica', 'bold');
+        doc.text('Horario Laboral Asignado:', 23, 131);
+        doc.setFont('helvetica', 'normal');
+        doc.text(data.horario || 'No especificado', 23, 135);
+        
+        // Declaración legal
+        doc.setFillColor(37, 99, 235);
+        doc.roundedRect(20, 145, 170, 8, 2, 2, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(12);
+        doc.text('DECLARACIÓN LEGAL', 25, 151);
+        
+        doc.setTextColor(0, 0, 0);
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9);
+        const declaracion = '"Declaro que, en virtud de la Ley 8/1980, de 10 de marzo, del Estatuto de los Trabajadores, así como de la normativa vigente sobre registro de jornada laboral, procedo a firmar y confirmar que las horas trabajadas han sido registradas correctamente en el presente formulario. Firmo para constancia de que las horas consignadas en este registro corresponden a las realizadas durante mi jornada laboral. Acepto que la información proporcionada sea almacenada conforme a la legislación laboral vigente."';
+        
+        const splitDeclaracion = doc.splitTextToSize(declaracion, 170);
+        doc.text(splitDeclaracion, 20, 160);
+        
+        // Sección de firma
+        doc.setFillColor(37, 99, 235);
+        doc.roundedRect(20, 200, 170, 8, 2, 2, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.text('FIRMA DIGITAL DEL TRABAJADOR', 25, 206);
+        
+        // Marco para la firma
+        doc.setDrawColor(200, 200, 200);
+        doc.setLineWidth(0.5);
+        doc.roundedRect(20, 215, 100, 35, 2, 2);
+        
+        // Añadir imagen de la firma
+        if (data.firma && data.firma !== 'data:,') {
+            doc.addImage(data.firma, 'PNG', 22, 217, 96, 31);
+        }
+        
+        // Información adicional
+        doc.setTextColor(71, 85, 105);
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`Trabajador: ${data.trabajador || 'No especificado'}`, 125, 225);
+        doc.text(`DNI: ${data.dni || 'No disponible'}`, 125, 230);
+        doc.text(`Fecha: ${data.fecha || 'No especificada'}`, 125, 235);
+        doc.text(`Hora: ${data.hora || 'No especificada'}`, 125, 240);
+        
+        // Pie de página con línea decorativa
+        doc.setDrawColor(37, 99, 235);
+        doc.setLineWidth(0.5);
+        doc.line(20, 260, 190, 260);
+        
+        doc.setTextColor(100, 116, 139);
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'italic');
+        doc.text(`Documento generado automáticamente el ${data.fecha || 'No especificada'} a las ${data.hora || 'No especificada'}`, 105, 270);
+        doc.text('Sistema de Registro Horario Laboral - Redes Carreras', 105, 275);
+        
         const fileName = `registro_${data.trabajador.replace(/\s+/g, '_')}_${data.fecha.replace(/\//g, '-')}.pdf`;
+        
+        // Descargar PDF
         doc.save(fileName);
     }
 

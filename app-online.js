@@ -357,6 +357,13 @@ class RegistroHorarioApp {
         document.getElementById('horario').value = '';
         document.getElementById('password').value = '';
         
+        // MEJORA: Limpiar completamente la firma visual y el canvas al salir
+        this.clearSignature();
+        document.getElementById('savedSignatureImg').src = '';
+        document.getElementById('savedSignatureContainer').style.display = 'none';
+        document.getElementById('drawSignatureContainer').style.display = 'block';
+        document.getElementById('useSavedSignature').checked = false;
+        
         this.showSuccess("Sesión cerrada correctamente");
         setTimeout(() => this.checkTimeRestriction(), 1000);
     }
@@ -441,9 +448,12 @@ class RegistroHorarioApp {
                 document.getElementById('drawSignatureContainer').style.display = 'none';
                 document.getElementById('useSavedSignature').checked = true;
             } else {
+                // MEJORA: Si el usuario NO tiene firma, nos aseguramos de borrar rastros de usuarios anteriores
+                document.getElementById('savedSignatureImg').src = '';
                 document.getElementById('savedSignatureContainer').style.display = 'none';
                 document.getElementById('drawSignatureContainer').style.display = 'block';
                 document.getElementById('useSavedSignature').checked = false;
+                this.clearSignature();
             }
         }
     }
@@ -566,12 +576,12 @@ class RegistroHorarioApp {
         doc.setFontSize(24);
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(37, 99, 235);
-        doc.text('REGISTRO HORARIO LABORAL', 45, 30);
+        doc.text('REGISTRO HORARIO LABORAL', 20, 30);
         
         // Subtítulo oficial
         doc.setFontSize(10);
         doc.setTextColor(71, 85, 105);
-        doc.text('Documento Oficial - Sistema de Registro Horario', 45, 38);
+        doc.text('Documento Oficial - Sistema de Registro Horario', 20, 38);
         doc.setTextColor(0, 0, 0);
         
         // Línea decorativa
@@ -614,7 +624,7 @@ class RegistroHorarioApp {
         doc.setFont('helvetica', 'normal');
         const trabajadorText = data.trabajador || 'Trabajador no especificado';
         doc.text(trabajadorText.length > 25 ? trabajadorText.substring(0, 25) + '...' : trabajadorText, 23, 105);
-        doc.text(data.dni || 'No disponible', 108, 105);
+        doc.text(data.dni || 'No disponible', 108, 105); // DNI completo en PDF
         
         // Fila 2
         doc.setFillColor(248, 250, 252);
@@ -631,7 +641,7 @@ class RegistroHorarioApp {
         doc.setFillColor(248, 250, 252);
         doc.roundedRect(20, 125, 170, 8, 1, 1, 'F');
         doc.setFont('helvetica', 'bold');
-        doc.text('Horario Laboral Asignado:', 23, 131);
+        doc.text('Horario Laboral:', 23, 131);
         doc.setFont('helvetica', 'normal');
         doc.text(data.horario || 'No especificado', 23, 135);
         
@@ -689,10 +699,27 @@ class RegistroHorarioApp {
         doc.text(`Documento generado automáticamente el ${data.fecha || 'No especificada'} a las ${data.hora || 'No especificada'}`, 105, 270);
         doc.text('Sistema de Registro Horario Laboral - Redes Carreras', 105, 275);
         
-        const fileName = `registro_${data.trabajador.replace(/\s+/g, '_')}_${data.fecha.replace(/\//g, '-')}.pdf`;
+        // Generar PDF como blob para envío por email
+        const pdfBlob = doc.output('blob');
+        const fechaNormalizada = (data.fecha || 'fecha-no-disponible').replace(/\//g, '-');
+        const fileName = `registro_${data.dni || 'sin-dni'}_${fechaNormalizada}.pdf`;
         
         // Descargar PDF
         doc.save(fileName);
+        
+        // Enviar por email (función dummy para que no de error)
+        await this.sendEmailWithPDF(data, pdfBlob, fileName);
+        
+        return pdfBlob;
+    }
+
+    async sendEmailWithPDF(data, pdfBlob, fileName) {
+        console.log('PDF generado exitosamente:', fileName);
+        if (navigator.onLine) {
+            console.log('Email would be sent to instalaciones@redescarreras.es');
+        } else {
+            console.log('Sin conexión - email pendiente de envío');
+        }
     }
 
     // === CANVAS ===
